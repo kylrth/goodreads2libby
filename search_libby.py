@@ -51,6 +51,10 @@ def get_wait_length(driver: WebDriver, entry: Tag) -> str:
 
     element = soup.select("strong[class=circ-option-estimate]")[0]
     element = element.select("span[role=text]")[0]
+
+    if "unknown" in element.text.lower():
+        # When the wait time is unknown, there's not a separate span for the wait time.
+        return "Unknown"
     element = element.select("span")[0]
 
     return element.string
@@ -132,7 +136,7 @@ def collect_seen() -> Set[str]:
 def is_sooner(a: str, b: str) -> bool:
     """Returns True iff a is sooner than b.
 
-    "Available now" < "Available soon" < "About 2 days" < "About 7 weeks" < ... < "Several months"
+    "Available now" < "Available soon" < "About 2 days" < "About 7 weeks" < ... < "Several months" < "Unknown"
     """
 
     def _int_rep(s: str) -> int:
@@ -144,6 +148,8 @@ def is_sooner(a: str, b: str) -> bool:
             return 0
         if s == "several months":
             return 10000000  # basically inf
+        if s == "unknown":
+            return 10000001  # inf + 1?
         if not s.startswith("about "):
             raise ValueError("weird wait time: " + s)
         if s.endswith(" days"):
@@ -167,9 +173,10 @@ if __name__ == "__main__":
     driver = sel.load_driver()
 
     seen = collect_seen()
-    results_count = len(seen)
-    if results_count > 0:
-        print(f"skipping {results_count} books we've already searched", file=sys.stderr)
+    if len(seen) > 0:
+        print(f"skipping {len(seen)} books we've already searched", file=sys.stderr)
+
+    results_count = 0
 
     for i, line in enumerate(csv.reader(sys.stdin)):
         if i <= len(seen):
@@ -199,8 +206,8 @@ if __name__ == "__main__":
                     if is_sooner(res["wait"], results[title_id]["wait"]):
                         results[title_id] = res
                 except ValueError as e:
-                    print(f"weird wait time: " + str(e))
-                    results[str(random.randint())] = res
+                    print(f"weird wait time: " + str(e), sys.stderr)
+                    results[str(random.random())] = res
 
         # TODO if there's an exact match (author + title starts with), keep only exact matches.
         # otherwise, keep everything
