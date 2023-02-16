@@ -11,13 +11,24 @@ python get_books.py 'https://www.goodreads.com/review/list/<your-list-id>?shelf=
 And then run this command to search Libby for those books:
 
 ```sh
-cat want-to-read.csv | python search_libby.py <library-ids>
+cat want-to-read.csv | python search_libby.py <library-ids> > libby.out
 ```
 
 You can get the library IDs by visiting <https://libbyapp.com/>, searching for your library, and checking the URL once you've clicked on the library:
 
 ```txt
 https://libbyapp.com/library/<library-ID>
+```
+
+For fun, show statistics:
+
+```sh
+$ cat libby.out | python results.py
+Of 675 books:
+ - 63 are available as ebooks,
+ - 31 are available as audiobooks,
+ - 109 are available as both,
+ - 472 are unavailable.
 ```
 
 ## dependencies
