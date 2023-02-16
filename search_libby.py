@@ -4,6 +4,7 @@ import random
 import sys
 from typing import Dict, List, Set
 import unicodedata
+import urllib.parse
 
 from bs4 import BeautifulSoup, Tag
 from selenium.webdriver.firefox.webdriver import WebDriver
@@ -86,8 +87,8 @@ def search(driver: WebDriver, author: str, title: str, library: str) -> List[Dic
     - audio_length (None if not audiobook, otherwise str; natural language description)
     """
     author = unreverse_author(author)
-    title = title.replace(":", "%3A")
-    title = title.split("(")[0].split(")")[0]
+    title = title.split("(")[0].split(")")[0]  # remove paretheses from title
+    title = urllib.parse.quote(title)
 
     url = f"https://libbyapp.com/search/{library}/search/query-{title} {author}/page-1"
 
